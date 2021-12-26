@@ -21,7 +21,7 @@ class Cart with ChangeNotifier {
   }
 
   int get itemCount {
-    return  _items.length;
+    return _items.length;
   }
 
   void addItem(String productId, double price, String title) {
@@ -58,8 +58,27 @@ class Cart with ChangeNotifier {
     _items.remove(productId);
     notifyListeners();
   }
+
   void clear() {
     _items = {};
+    notifyListeners();
+  }
+
+  void removeSingleItem(String productId) {
+    if (!_items.containsKey(productId)) {
+      return;
+    }
+    if (_items[productId].quantity > 1) {
+      _items.update(
+          productId,
+          (existing) => CartItem(
+              id: existing.id,
+              title: existing.title,
+              quantity: existing.quantity - 1,
+              price: existing.price));
+    }else {
+      _items.remove(productId);
+    }
     notifyListeners();
   }
 }
