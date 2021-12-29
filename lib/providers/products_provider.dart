@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_complete_guide/models/http_exception.dart';
 import '../models/product.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -63,24 +64,23 @@ class Products with ChangeNotifier {
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
-      final List<Product>loadedProducts = [];
+      final List<Product> loadedProducts = [];
       extractedData.forEach((key, value) {
-        loadedProducts.insert(0,
-          Product(
-            id: key,
-            title: value['title'],
-            description: value['description'],
-            price: value['price'],
-            imageUrl: value['imageUrl'],
-            isFavorite: value['isFavorite']
-          )
-        );
+        loadedProducts.insert(
+            0,
+            Product(
+                id: key,
+                title: value['title'],
+                description: value['description'],
+                price: value['price'],
+                imageUrl: value['imageUrl'],
+                isFavorite: value['isFavorite']));
       });
 
       _items = loadedProducts;
       notifyListeners();
-    }catch(error) {
-      throw(error);
+    } catch (error) {
+      throw (error);
     }
   }
 
@@ -90,15 +90,14 @@ class Products with ChangeNotifier {
     var url = Uri.parse(
         'https://flutter-course-994e9-default-rtdb.firebaseio.com/products.json');
     try {
-      final response = await http
-          .post(
+      final response = await http.post(
         url,
         body: json.encode({
           'title': product.title,
           'description': product.description,
           'price': product.price,
           'imageUrl': product.imageUrl,
-          'favorite': product.isFavorite
+          'isFavorite': product.isFavorite
         }),
       );
       final newProduct = Product(
@@ -108,11 +107,10 @@ class Products with ChangeNotifier {
           price: product.price,
           imageUrl: product.imageUrl);
       _items.add(newProduct);
-
     } catch (e) {
       throw e;
     }
-      notifyListeners();
+    notifyListeners();
   }
 
   List<Product> get favoriteItems {
@@ -123,9 +121,23 @@ class Products with ChangeNotifier {
     return _items.firstWhere((element) => element.id == id);
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
-    if (prodIndex > 0) {
+    if (prodIndex >= 0) {
+      var url = Uri.parse(
+          'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json');
+      try {
+        await http.patch(url,
+            body: json.encode({
+              'title': newProduct.title,
+              'description': newProduct.description,
+              'imageUrl': newProduct.imageUrl,
+              'price': newProduct.price,
+            }));
+      } catch (e) {
+        print(e);
+      }
+
       _items[prodIndex] = newProduct;
       notifyListeners();
     } else {
@@ -133,8 +145,22 @@ class Products with ChangeNotifier {
     }
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id == id);
+  void deleteProduct(String id) async {
+    var url = Uri.parse(
+        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json');
+    final existingProductIndex =
+        _items.indexWhere((element) => element.id == id);
+    var existingProduct = _items[existingProductIndex];
+    _items.removeAt(existingProductIndex);
+    notifyListeners();
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.insert(existingProductIndex, existingProduct);
+      notifyListeners();
+      throw HttpException('Could not delete product');
+    }
+    existingProduct = null;
+
     notifyListeners();
   }
 }
