@@ -23,14 +23,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => Orders()),
         ChangeNotifierProvider(create: (ctx)=>Auth()),
       ],
-      child: MaterialApp(
+      child: Consumer<Auth>(builder: (ctx, auth, _) =>  MaterialApp(
         title: 'MyShop',
         theme: ThemeData(
           primarySwatch: Colors.purple,
           accentColor: Colors.deepOrange,
           fontFamily: 'Lato',
         ),
-        home: AuthScreen(),
+        home: auth.isAuth ? ProductsOverviewScreen() : AuthScreen(),
         routes: {
           ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
           CartScreen.routeName:(ctx) => CartScreen(),
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
           UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
           EditProductScreen.routeName: (ctx)=>EditProductScreen(),
         },
-      ),
+      )),
     );
   }
 }
