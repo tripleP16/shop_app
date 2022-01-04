@@ -58,9 +58,17 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
+  String _authToken;
+
+  set authToken(String value) {
+    _authToken = value;
+  }
+
+  Products();
+
   Future<void> fetchAndSetProducts() async {
     var url = Uri.parse(
-        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products.json');
+        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products.json?auth=$_authToken');
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
@@ -88,7 +96,7 @@ class Products with ChangeNotifier {
     // _items.add(value);
 
     var url = Uri.parse(
-        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products.json');
+        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products.json?auth=$_authToken');
     try {
       final response = await http.post(
         url,
@@ -125,7 +133,7 @@ class Products with ChangeNotifier {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       var url = Uri.parse(
-          'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json');
+          'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json?auth=$_authToken');
       try {
         await http.patch(url,
             body: json.encode({
@@ -147,7 +155,7 @@ class Products with ChangeNotifier {
 
   void deleteProduct(String id) async {
     var url = Uri.parse(
-        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json');
+        'https://flutter-course-994e9-default-rtdb.firebaseio.com/products/$id.json?auth=$_authToken');
     final existingProductIndex =
         _items.indexWhere((element) => element.id == id);
     var existingProduct = _items[existingProductIndex];
