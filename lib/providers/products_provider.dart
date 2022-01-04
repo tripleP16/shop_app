@@ -59,6 +59,11 @@ class Products with ChangeNotifier {
   // }
 
   String _authToken;
+  String _userId;
+
+  set userId(String value){
+    _userId = value;
+  }
 
   set authToken(String value) {
     _authToken = value;
@@ -72,6 +77,12 @@ class Products with ChangeNotifier {
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if(extractedData == null){
+        return;
+      }
+      final favoriteResponse = await http.get(Uri.parse( 'https://flutter-course-994e9-default-rtdb.firebaseio.com/userFavorites/$_userId.json?auth=$_authToken'));
+      final favoriteData = json.decode(favoriteResponse.body);
+
       final List<Product> loadedProducts = [];
       extractedData.forEach((key, value) {
         loadedProducts.insert(
@@ -82,7 +93,7 @@ class Products with ChangeNotifier {
                 description: value['description'],
                 price: value['price'],
                 imageUrl: value['imageUrl'],
-                isFavorite: value['isFavorite']));
+                isFavorite: favoriteData == null ? false: favoriteData[key] ?? false));
       });
 
       _items = loadedProducts;
@@ -105,7 +116,6 @@ class Products with ChangeNotifier {
           'description': product.description,
           'price': product.price,
           'imageUrl': product.imageUrl,
-          'isFavorite': product.isFavorite
         }),
       );
       final newProduct = Product(
