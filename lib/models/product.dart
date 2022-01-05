@@ -12,6 +12,7 @@ class Product with ChangeNotifier {
   final String imageUrl;
   bool isFavorite;
 
+
   Product(
       {@required this.id,
       @required this.title,
